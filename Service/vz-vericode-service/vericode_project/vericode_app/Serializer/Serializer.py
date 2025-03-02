@@ -3,7 +3,7 @@ from rest_framework import serializers
 from vericode_app.Model import ApiRequest
 from vericode_app.Model.LlmModel import LlmModel
 from vericode_app.Model.SourceDocument import SourceDocument
-from vericode_app.models import LlmModels
+from vericode_app.models import LlmModels, SummarizeLlmModels
 
 
 class SourceDocumentSerializer(serializers.Serializer):
@@ -20,12 +20,12 @@ class LlmModelSerializer(serializers.Serializer):
     #     model = LlmModel
     #     fields = "__all__"
     text = serializers.CharField()
-    sourceDocuments = SourceDocumentSerializer(many=True)
-    question = serializers.CharField()
-    chatId = serializers.CharField()
-    chatMessageId = serializers.CharField()
-    isStreamValid = serializers.BooleanField()
-    sessionId = serializers.CharField()
+    sourceDocuments = SourceDocumentSerializer(many=True,required=False)
+    question = serializers.CharField(required=False)
+    chatId = serializers.CharField(required=False)
+    chatMessageId = serializers.CharField(required=False)
+    isStreamValid = serializers.BooleanField(required=False)
+    sessionId = serializers.CharField(required=False)
     statusCode = serializers.CharField(required=False)
     message = serializers.CharField(required=False)
     model_name = serializers.CharField(required=False)
@@ -53,4 +53,9 @@ class ApiResponseSerializer(serializers.Serializer):
 class LlmModelsSerializer(serializers.ModelSerializer):
     class Meta:
         model = LlmModels
+        fields = "__all__"
+
+class SummarizeLlmModelsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SummarizeLlmModels
         fields = "__all__"

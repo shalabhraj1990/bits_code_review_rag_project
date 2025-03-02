@@ -3,30 +3,39 @@ import Loading from "../../utilities/Loading";
 import  {useEffect, useState } from "react";
 import * as serviceApi from "../../apiutil/vericodeServiceaApi";
 
-const Card = ({modelName,form,cardResponse}) => {
+const MergeCard = ({mergeModelName,modelsResponse,form}) => {
     const [loading, setLoading] = useState(true);
     const [modeInfo, setModeInfo] = useState({});
       useEffect(() => {
-        const payload = {
-          question: form?.question,
-          model_name: modelName,
-        };
-        serviceApi.post_api("get-model-response/",payload).then((response) => {
+        if(form && mergeModelName && modelsResponse?.length > 0){
+          const code = form?.question;
+          let context = "";
+          const uniqueModelsResponse = Array.from(new Set(modelsResponse.map(item => JSON.stringify(item)))).map(item => JSON.parse(item));
+          uniqueModelsResponse?.map((res,index) => {
+            context += `Context ${index} : \n` + res?.text + `\n ----------- \n`;
+          })
+          const prompt =  `Code :\n ${code} \n ----------- \n ${context}`;
+          const payload = {
+            question: prompt,
+            model_name: mergeModelName,
+          };
+          serviceApi.post_api("get-merge-response/",payload).then((response) => {
             setLoading(false);
             setModeInfo(response);
-            cardResponse(response);
         }).catch((error) => {
           setLoading(false);
         });
-      }, [modelName]);
+      }
+       
+      }, [mergeModelName]);
 
 
     return (
-        <div id="card" className=" w-[508px] h-[547px]   shadow-[0px_4px_4px_#00000040] rounded-[30px_30px_30px_30px]">
+      <div id="card" className=" w-full h-[547px]   shadow-[0px_4px_4px_#00000040] rounded-[30px_30px_30px_30px]">
 
         <div className=" w-[506px] h-[42px]  flex  items-center justify-center bg-[#d9d9d9] rounded-[30px_30px_0px_0px]">
           <div className=" w-[200px] h-7 top-[7px]  font-subtitle-subtitle-large font-[number:var(--subtitle-subtitle-large-font-weight)] text-black text-[length:var(--subtitle-subtitle-large-font-size)] tracking-[var(--subtitle-subtitle-large-letter-spacing)] leading-[var(--subtitle-subtitle-large-line-height)] [font-style:var(--subtitle-subtitle-large-font-style)]">
-            <b>{modelName} result</b>
+            <b>{mergeModelName} result</b>
           </div>
         </div>
         {
@@ -36,4 +45,4 @@ const Card = ({modelName,form,cardResponse}) => {
     </div>
     )}
 
-export default Card;
+export default MergeCard;

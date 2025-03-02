@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import Cards from "./Cards";
+import MergeCard from "./MergeCard";
 
 import * as serviceApi from "../../apiutil/vericodeServiceaApi";
 
 function Landing() {
 
-  const [form, setForm] = useState({ question: "", model: "ALL",selectedModels:[],mergeModel:"",showResults: false });
+  const [form, setForm] = useState({ question: "", model: "ALL",selectedModels:[],mergeModel:"",showResults: false,showMergeModel: false });
   const [models, setModels] = useState([]);
+  const [summarymodels, setSummarymodels] = useState([]);
+  const [modelsResponse, setModelsResponse] = useState([]);
 
   useEffect(() => {
     serviceApi.get_api("get-models").then((response) => {
@@ -18,11 +21,19 @@ function Landing() {
     }).catch((error) => {
       console.log("error", error);
     });
+
+    serviceApi.get_api("get-summarize-models").then((response) => {
+      setSummarymodels(response);
+    }).catch((error) => {
+      console.log("error", error);
+    });
+
   }, []);
 
 
   function handleModelChange(event) {
-   
+
+    setModelsResponse([])
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
@@ -49,8 +60,17 @@ function Landing() {
 
   }
 
+  function handleModelResponse(data) {
+    modelsResponse.push(data);
+    setModelsResponse(modelsResponse);
+  }
+
+  function handleMergeResponse(data) {
+    console.log("mergeData", data);
+    }
+  
+
   function handleChange(event) {
-   
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
@@ -58,9 +78,18 @@ function Landing() {
     }));
   }
 
+  function handleMergeModelChange(event) {
+    const { name, value } = event.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,showMergeModel: true
+    }));
+  }
+
   
 
   function onSubmit(event) {
+    setModelsResponse([])
     if(form?.question && form?.model){
       setForm((prev) => ({...prev, showResults: true}));
     }    
@@ -82,7 +111,7 @@ function Landing() {
                   </div>
 
                   <p className="absolute top-10 right-[71px]  font-headings-h6 font-[number:var(--headings-h6-font-weight)] text-lsblack text-[length:var(--headings-h6-font-size)] text-center tracking-[var(--headings-h6-letter-spacing)] leading-[var(--headings-h6-line-height)] whitespace-nowrap [font-style:var(--headings-h6-font-style)]">
-                    A play on Verizon and code verification
+                    A play on VeriCode and code verification
                   </p>
                 </div>
               </div>
@@ -125,9 +154,9 @@ function Landing() {
               
                  
               <div className=" w-[237px] h-[42px] bg-ls-white rounded-[10px] border border-solid border-black shadow-[0px_4px_4px_#00000040]">
-                  <select name="mergeModel" onChange={handleChange} className=" cursor-pointer w-[237px] h-[42px] rounded-[10px] p-2" label="Select Version">
+                  <select name="mergeModel" onChange={handleMergeModelChange} className=" cursor-pointer w-[237px] h-[42px] rounded-[10px] p-2" label="Select Version">
                   <option>Select</option>
-                  {models && models.map(o => {
+                  {summarymodels && summarymodels?.map(o => {
                       return (
                         <option key={o.model_id} value={o.model_name}>
                           {o.model_name}
@@ -138,7 +167,10 @@ function Landing() {
               </div>
             </div>        
       </div>}
-      {form?.showResults && form?.selectedModels && <Cards form={form} />}
+
+
+      
+      {form?.showResults && form?.selectedModels && <Cards handleResponse = {handleModelResponse} form={form} />}
     </div>
     <div id="footer" className="fixed bottom-0 left-1/2" >
       
@@ -148,7 +180,40 @@ function Landing() {
               </p>
             </footer>
       </div> 
-</div></>
+</div>
+
+
+{ form && form?.showMergeModel  && 
+      <div name="mergeModel" className="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+
+            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all  w-1/2 ">
+              <div className="bg-white ">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-base font-semibold text-gray-900" id="modal-title">Merged Results with : {form?.mergeModel}</h3>
+                    <div className="mt-2">
+                      {form?.mergeModel && modelsResponse?.length > 0 ? <MergeCard key={form?.mergeModel} mergeModelName={form?.mergeModel} form={form}  modelsResponse={modelsResponse} /> : "Please try again..."}
+                     
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <button type="button" className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-red-500 sm:ml-3 sm:w-auto" onClick={() =>!  setForm((prev) => ({
+      ...prev,
+      showMergeModel: false
+    }))}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+</>
   );
 };
 

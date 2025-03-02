@@ -17,9 +17,11 @@ Including another URLconf
 
 from django.urls import path,include
 from vericode_app import views
-from vericode_app.views import GetLlmModelsView
+from vericode_app.views import GetLlmModelsView, GetMergeModelsView
 
 urlpatterns = [
     path('get-models/', views.getLlmModels,name='get-models'),
+    path('get-summarize-models/', views.getSummarizeLlmModels,name='get-models'),
     path('get-model-response/', GetLlmModelsView.as_view(), name='get-model-response'),
+    path('get-merge-response/', GetMergeModelsView.as_view(), name='get-merge-response'),
 ]
